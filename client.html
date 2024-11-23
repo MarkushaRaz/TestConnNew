@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebRTC Client 2</title>
+</head>
+<body>
+    <h1>Client 2 (Receiver)</h1>
+    <textarea id="receivedMessages" placeholder="Received messages will appear here" readonly></textarea><br>
+    <textarea id="answerSignal" placeholder="Paste the Offer Signal from Client 1 here"></textarea><br>
+    <button onclick="receiveOffer()">Accept Connection</button>
+
+    <script>
+        let remoteConnection;
+        let dataChannel;
+
+        const receivedMessages = document.getElementById('receivedMessages');
+        const answerSignal = document.getElementById('answerSignal');
+
+        async function receiveOffer() {
+            const offer = JSON.parse(answerSignal.value);
+
+            remoteConnection = new RTCPeerConnection();
+
+            // Set up the data channel event handler for receiving messages
+            remoteConnection.ondatachannel = (event) => {
+                dataChannel = event.channel;
+                dataChannel.onmessage = (e) => {
+                    receivedMessages.value += `Received: ${e.data}\n`;
+                };
+            };
+
+            // Set remote description and create an answer
+            await remoteConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await remoteConnection.createAnswer();
+            await remoteConnection.setLocalDescription(answer);
+
+            // Send the answer signal back to Client 1
+            alert("Send the answer signal back to Client 1:\n" + JSON.stringify(answer));
+        }
+    </script>
+</body>
+</html>

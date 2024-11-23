@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebRTC Client 1</title>
+</head>
+<body>
+    <h1>Client 1 (Sender)</h1>
+    <textarea id="messageInput" placeholder="Enter your message"></textarea><br>
+    <button onclick="sendMessage()">Send Message</button>
+    <p>Generated Signal (Send this to Client 2):</p>
+    <textarea id="offerSignal" readonly></textarea>
+
+    <script>
+        let localConnection;
+        let dataChannel;
+
+        const messageInput = document.getElementById('messageInput');
+        const offerSignal = document.getElementById('offerSignal');
+
+        async function createConnection() {
+            localConnection = new RTCPeerConnection();
+
+            // Create a data channel
+            dataChannel = localConnection.createDataChannel("chat");
+
+            // Set up event listeners for the data channel
+            dataChannel.onopen = () => console.log("Data channel opened!");
+            dataChannel.onmessage = (event) => {
+                console.log("Received message: " + event.data);
+            };
+
+            // Create offer and set local description
+            const offer = await localConnection.createOffer();
+            await localConnection.setLocalDescription(offer);
+            
+            // Show the offer signal
+            offerSignal.value = JSON.stringify(offer);
+        }
+
+        function sendMessage() {
+            const message = messageInput.value;
+            if (dataChannel && dataChannel.readyState === "open") {
+                dataChannel.send(message);
+                console.log("Sent message: " + message);
+                messageInput.value = '';
+            }
+        }
+
+        // Create the connection when the page loads
+        createConnection();
+    </script>
+</body>
+</html>
