@@ -11,12 +11,17 @@
     <p>Generated Signal (Send this to Client 2):</p>
     <textarea id="offerSignal" readonly></textarea>
 
+    <p>Insert Answer from Client 2:</p>
+    <textarea id="answerInput" placeholder="Paste the Answer Signal from Client 2 here"></textarea><br>
+    <button onclick="applyAnswer()">Apply Answer</button>
+
     <script>
         let localConnection;
         let dataChannel;
 
         const messageInput = document.getElementById('messageInput');
         const offerSignal = document.getElementById('offerSignal');
+        const answerInput = document.getElementById('answerInput');
 
         async function createConnection() {
             localConnection = new RTCPeerConnection();
@@ -44,6 +49,22 @@
                 dataChannel.send(message);
                 console.log("Sent message: " + message);
                 messageInput.value = '';
+            }
+        }
+
+        function applyAnswer() {
+            const answerSignal = answerInput.value;
+            try {
+                const remoteDescription = new RTCSessionDescription(JSON.parse(answerSignal));
+                localConnection.setRemoteDescription(remoteDescription)
+                    .then(() => {
+                        console.log("Answer applied successfully!");
+                    })
+                    .catch((error) => {
+                        console.error("Error applying Answer:", error);
+                    });
+            } catch (error) {
+                console.error("Invalid Answer format:", error);
             }
         }
 
